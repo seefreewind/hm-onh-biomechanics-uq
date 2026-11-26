@@ -1,5 +1,7 @@
 # Finite Element Modeling and Global Uncertainty Quantification of Myopic Optic Nerve Head Biomechanics
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.24557355.svg)](https://doi.org/10.5281/zenodo.24557355)
+
 Official reproducible computational repository accompanying the manuscript:
 
 > **Finite element modeling and global uncertainty quantification of myopic optic nerve head biomechanics for axial-length-stratified safe intraocular pressure estimation**
@@ -96,7 +98,9 @@ Project author: **HM-ONH Biomechanics UQ Project**. No affiliation is specified.
 
 Repository: https://github.com/seefreewind/hm-onh-biomechanics-uq
 
-Zenodo archival metadata are provided in `.zenodo.json`. Releases are intended for archival through the GitHub–Zenodo integration.
+Zenodo archive (v1.0.0): [10.5281/zenodo.24557355](https://doi.org/10.5281/zenodo.24557355).
+
+The Zenodo record preserves the original supplied repository ZIP. GitHub includes updated publication and citation metadata; the original code, configuration, tests, simulation data, and result files are unchanged. This version was archived manually. Automatic GitHub–Zenodo release preservation is not enabled; future releases require separate archival until the integration is working.
 
 The virtual cohort is simulated and contains no patient-level clinical records. Equivalent IOP boundaries are model-based research estimates and require independent clinical validation.
 

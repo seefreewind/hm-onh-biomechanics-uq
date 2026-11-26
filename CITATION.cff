@@ -6,6 +6,7 @@ authors:
   - name: "HM-ONH Biomechanics UQ Project"
 repository-code: "https://github.com/seefreewind/hm-onh-biomechanics-uq"
 url: "https://github.com/seefreewind/hm-onh-biomechanics-uq"
+doi: "10.5281/zenodo.24557355"
 license: MIT
 version: "1.0.0"
 date-released: "2026-11-26"
