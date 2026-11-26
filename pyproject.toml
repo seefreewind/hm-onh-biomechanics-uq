@@ -1,0 +1,15 @@
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hm-onh-biomechanics-uq"
+version = "1.0.0"
+description = "Finite element biomechanics and global UQ of high-myopia optic nerve head"
+requires-python = ">=3.11"
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+norecursedirs = [".venv", ".tools", "._*", "__pycache__", "data", "results"]
+addopts = "--ignore-glob=**/._*"

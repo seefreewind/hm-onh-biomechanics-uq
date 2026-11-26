@@ -1,0 +1,19 @@
+cff-version: 1.2.0
+title: "Finite element modeling and global uncertainty quantification of myopic optic nerve head biomechanics for axial-length-stratified safe intraocular pressure estimation"
+message: "If you use this software or dataset, please cite this project."
+type: software
+authors:
+  - name: "HM-ONH Biomechanics UQ Project"
+repository-code: "https://github.com/seefreewind/hm-onh-biomechanics-uq"
+url: "https://github.com/seefreewind/hm-onh-biomechanics-uq"
+license: MIT
+version: "1.0.0"
+date-released: "2026-11-26"
+keywords:
+  - high myopia
+  - optic nerve head biomechanics
+  - lamina cribrosa
+  - finite element modeling
+  - Gaussian process surrogate
+  - Sobol global sensitivity analysis
+  - safe intraocular pressure

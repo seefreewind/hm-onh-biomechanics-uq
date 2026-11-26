@@ -1,0 +1,13 @@
+{
+  "split": "smoke",
+  "n_total": 20,
+  "n_converged": 20,
+  "convergence_rate": 1.0,
+  "n_retried_and_recovered": 0,
+  "n_workers": 3,
+  "wall_seconds": 161.98,
+  "mean_single_solver_seconds": 22.53,
+  "effective_wall_seconds_per_case": 8.1,
+  "estimated_480_cases_minutes": 64.8,
+  "output_csv": "/Volumes/\u786c\u76d82/\u9ad8\u5ea6\u8fd1\u89c6\u89c6\u795e\u7ecf\u4e73\u5934\u529b\u5b66\u5efa\u6a21\u65b9\u6848/data/processed/sim_results_smoke.csv"
+}

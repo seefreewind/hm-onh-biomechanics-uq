@@ -1,0 +1,185 @@
+# ==============================================================================
+# 高度近视视神经乳头 (ONH) 有限元仿真、网格、代理模型与 UQ 全局运行配置
+# 强制单位体系: mm - N - MPa (1 mmHg = 0.000133322 MPa)
+# ==============================================================================
+
+units:
+  system: "mm-N-MPa"
+  mmhg_to_mpa: 0.000133322
+  kpa_to_mpa: 0.001
+  um_to_mm: 0.001
+
+reproducibility:
+  seed: 42
+  n_cpu_detected: 10
+  default_parallel_workers: 2
+
+# ------------------------------------------------------------------------------
+# 固定生理几何与辅助组织本构参数 (不随 10 维 LHS 抽样变化的部分)
+# ------------------------------------------------------------------------------
+anatomy_constants:
+  # 后段眼球内壁曲率半径随眼轴延长映射 (Norman et al. 2010; Sigal et al. 2005):
+  # R_in(AL) = 11.50 + 0.48 * (AL - 24.0) [mm]，准确刻画轴性近视眼球扩大与后极部平坦化引起的拉普拉斯环向张力放大
+  posterior_base_inner_radius_mm: 11.50
+  posterior_radius_al_slope: 0.48
+  peripheral_sclera_thickness_mm: 0.80
+  peripapillary_ring_outer_radius_factor: 2.20   # 视盘周环向纤维富集区外径 = 2.2 * R_canal
+  transition_zone_outer_radius_factor: 3.60      # 视盘周向赤道部厚度平滑过渡区外径
+  tilt_blend_inner_factor: 1.15                  # 视神经管整体倾斜核心区 (完整覆盖 LC/RLON/PIA)
+  tilt_blend_outer_factor: 4.20                  # 视神经管倾斜向周围巩膜 C1 平滑衰减外径
+  posterior_canal_expansion_ratio: 1.12          # 后巩膜管口 / 前巩膜管口直径比
+  lc_anterior_insertion_fraction: 0.30           # 筛板前表面在巩膜管内壁插入深度比例
+  optic_cup_depth_mm: 0.04                       # 视盘生理前杯凹深度 (mm)
+  lc_anterior_cup_depth_mm: 0.05                 # 筛板生理前凹深度 (mm)
+  retrolaminar_nerve_length_mm: 1.80             # 筛板后视神经段建模长度 (mm)
+  pia_mater_thickness_mm: 0.08                   # 软脑膜鞘厚度 (mm)
+
+constitutive_constants:
+  # 1. 巩膜 (PPS & PSCL): FEBio 原生 Girard-Gouget 本构 "Mooney-Rivlin von Mises Fibers"
+  #    sigma_fib(lam) = c3 * (exp(c4 * (lam - 1)) - 1), 初始纤维切线模量 c3 * c4 = 4.0 * ksi_fiber
+  sclera:
+    c2_mpa: 0.0
+    bulk_modulus_mpa: 100.0
+    fiber_c4: 35.0                # 胶原纤维解卷曲非线性无量纲指数 (Girard et al., JBME 2009)
+    fiber_lam_max: 1.10           # 胶原纤维完全拉直伸长比阈值 (远高于生理 1-3% 伸长区)
+    fiber_gipt: 20                # 切平面半圆高斯积分点数 (必须为 10 的正整数倍)
+    fiber_vmc: 1                  # 1 = 标准半圆 Von Mises 分布 (exp(kf * cos(2*(theta - tp))) / (pi * I0(kf)))
+    peripheral_kf: 0.15           # 远离视盘周的后部巩膜 (PSCL) 近似平面各向同性
+  # 2. 筛板 (LC): 近似不可压缩 Neo-Hookean 超弹性
+  lamina_cribrosa:
+    poisson_ratio: 0.49
+  # 3. 辅助组织 (筛板前视网膜神经层 PLNT、筛板后视神经实质 RLON、软脑膜鞘 PIA)
+  prelaminar_neural:
+    youngs_modulus_mpa: 0.04
+    poisson_ratio: 0.49
+  retrolaminar_neural:
+    youngs_modulus_mpa: 0.04
+    poisson_ratio: 0.49
+  pia_mater:
+    c1_mpa: 0.35
+    c2_mpa: 0.0
+    bulk_modulus_mpa: 100.0
+
+boundary_and_loads:
+  equatorial_constraint: "clamped_equator_xyz"
+  csfp_mmhg: 11.0
+  csfp_mpa: 0.001466542           # 11.0 * 0.000133322 MPa (筛板后蛛网膜下腔脑脊液压力)
+  load_curve_type: "smooth_ramp"
+
+# ------------------------------------------------------------------------------
+# Gmsh 三维结构化 O-Grid 六面体 (hex8) 三级网格收敛性配置
+# ------------------------------------------------------------------------------
+mesh:
+  element_type: "hex8"            # 全六面体 B-bar 单元，彻底消除近不可压缩体积自锁与重剖分拓扑噪声
+  levels:
+    coarse:
+      n_circum_quarter: 6         # 周向 4 * 6 = 24 等分 (3,420 hex8, ~3.3s)
+      n_rad_lc_ring: 4
+      n_rad_pia: 2
+      n_rad_pps: 5
+      n_rad_trans: 4
+      n_rad_pscl: 6
+      n_z_ant: 2
+      n_z_lc: 3
+      n_z_retro: 4
+    medium:
+      n_circum_quarter: 9         # 周向 4 * 9 = 36 等分 + 巩膜径向加密 (~10,900 hex8, ~18s @ 2 workers)
+      n_rad_lc_ring: 7
+      n_rad_pia: 2
+      n_rad_pps: 8
+      n_rad_trans: 6
+      n_rad_pscl: 9
+      n_z_ant: 3
+      n_z_lc: 5
+      n_z_retro: 6
+    fine:
+      n_circum_quarter: 11        # 周向 4 * 11 = 44 等分 (22,330 hex8, ~82s)
+      n_rad_lc_ring: 8
+      n_rad_pia: 3
+      n_rad_pps: 9
+      n_rad_trans: 7
+      n_rad_pscl: 10
+      n_z_ant: 4
+      n_z_lc: 6
+      n_z_retro: 8
+  production_level: "medium"
+  quality_gates:
+    min_jacobian_det_exclusive: 0.0
+    min_scaled_jacobian: 0.20
+    convergence_rel_tol: 0.02
+
+# ------------------------------------------------------------------------------
+# FEBio 4.x 求解器与自适应重试策略 (严禁静默跳过失败算例)
+# ------------------------------------------------------------------------------
+febio:
+  spec_version: "4.0"
+  executable: ".tools/febio4/bin/febio4"
+  linear_solver: "accelerate"
+  timeout_seconds: 300
+  failed_cases_log: "logs/failed_cases.csv"
+  solver_schedule:
+    primary:
+      time_steps: 5
+      step_size: 0.20
+      dtmin: 0.01
+      dtmax: 0.25
+      max_ups: 20
+      max_refs: 15
+      diverge_reform: 1
+      reform_each_time_step: 0
+      opt_iter: 12
+    retry_1:
+      time_steps: 15
+      step_size: 0.0666667
+      dtmin: 0.002
+      dtmax: 0.10
+      max_ups: 20
+      max_refs: 25
+      diverge_reform: 1
+      reform_each_time_step: 1
+      opt_iter: 10
+    retry_2:
+      time_steps: 40
+      step_size: 0.025
+      dtmin: 0.0002
+      dtmax: 0.025
+      max_ups: 25
+      max_refs: 35
+      diverge_reform: 1
+      reform_each_time_step: 1
+      opt_iter: 12
+
+# ------------------------------------------------------------------------------
+# 批量抽样、GP 代理模型与双轨 UQ 配置
+# ------------------------------------------------------------------------------
+sampling:
+  n_smoke: 20
+  n_train: 400
+  n_test: 80
+  method: "maximin_lhs"
+
+surrogate:
+  kernel: "ConstantKernel * Matern(nu=2.5, ARD=True) + WhiteKernel"
+  n_restarts_optimizer: 20
+  normalize_y: true
+  acceptance_gates:
+    min_q2_test: 0.98
+    max_nrmse_test: 0.02
+  active_learning:
+    enabled_if_below_gate: true
+    batch_size: 20
+    max_rounds: 3
+
+uq:
+  sobol:
+    calc_second_order: true
+    n_base_samples: 4096
+    bootstrap_resamples: 1000
+    ci_level: 0.95
+  copula_cohort:
+    n_virtual_eyes: 10000
+    al_strata_mm:
+      emmetropia_low_myopia: [22.0, 24.5]
+      moderate_myopia: [24.5, 26.5]
+      high_myopia: [26.5, 29.0]
+      extreme_pathologic_myopia: [29.0, 32.0]

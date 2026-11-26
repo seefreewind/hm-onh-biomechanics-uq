@@ -1,0 +1,65 @@
+{
+  "reference_al_mm": 24.0,
+  "reference_iop_mmhg": 21.0,
+  "reference_iop_mpa": 0.0027997620000000003,
+  "eps_ref_cohort_median": 0.02358412365812687,
+  "eps_ref_cohort_median_pct": 2.358412365812687,
+  "eps_emmetropia_deterministic_pct": 2.018831917018423,
+  "key_al_milestones": [
+    {
+      "AL_mm": 24.0,
+      "iop_eq_median_mmhg": 21.00060537923249,
+      "iop_eq_mean_mmhg": 20.858190521274857,
+      "iop_eq_p25_mmhg": 18.463494761900087,
+      "iop_eq_p75_mmhg": 23.31270409221085,
+      "iop_eq_p10_safe_bound_mmhg": 16.157020820209844,
+      "iop_eq_p90_mmhg": 25.354656251130578,
+      "iop_reduction_vs_21_median_mmhg": -0.000605379232489156,
+      "iop_reduction_vs_21_p10_mmhg": 4.842979179790156
+    },
+    {
+      "AL_mm": 26.0,
+      "iop_eq_median_mmhg": 17.69496603969251,
+      "iop_eq_mean_mmhg": 17.560431513064866,
+      "iop_eq_p25_mmhg": 15.156190183378069,
+      "iop_eq_p75_mmhg": 19.988996095528748,
+      "iop_eq_p10_safe_bound_mmhg": 12.99160805818282,
+      "iop_eq_p90_mmhg": 21.876760032653273,
+      "iop_reduction_vs_21_median_mmhg": 3.3050339603074903,
+      "iop_reduction_vs_21_p10_mmhg": 8.00839194181718
+    },
+    {
+      "AL_mm": 28.0,
+      "iop_eq_median_mmhg": 14.461727987794989,
+      "iop_eq_mean_mmhg": 14.365448244089945,
+      "iop_eq_p25_mmhg": 11.970475071448098,
+      "iop_eq_p75_mmhg": 16.76989147882704,
+      "iop_eq_p10_safe_bound_mmhg": 9.942170543478872,
+      "iop_eq_p90_mmhg": 18.586337576221243,
+      "iop_reduction_vs_21_median_mmhg": 6.538272012205011,
+      "iop_reduction_vs_21_p10_mmhg": 11.057829456521128
+    },
+    {
+      "AL_mm": 30.0,
+      "iop_eq_median_mmhg": 11.346555107470962,
+      "iop_eq_mean_mmhg": 11.321491718055807,
+      "iop_eq_p25_mmhg": 9.012623228635777,
+      "iop_eq_p75_mmhg": 13.637423107394318,
+      "iop_eq_p10_safe_bound_mmhg": 6.988653989805388,
+      "iop_eq_p90_mmhg": 15.41334600090663,
+      "iop_reduction_vs_21_median_mmhg": 9.653444892529038,
+      "iop_reduction_vs_21_p10_mmhg": 14.011346010194611
+    },
+    {
+      "AL_mm": 32.0,
+      "iop_eq_median_mmhg": 8.439473463493417,
+      "iop_eq_mean_mmhg": 8.540177171176511,
+      "iop_eq_p25_mmhg": 6.1869935255053665,
+      "iop_eq_p75_mmhg": 10.714266708609848,
+      "iop_eq_p10_safe_bound_mmhg": 4.2808803960191675,
+      "iop_eq_p90_mmhg": 12.424635219268747,
+      "iop_reduction_vs_21_median_mmhg": 12.560526536506583,
+      "iop_reduction_vs_21_p10_mmhg": 16.719119603980833
+    }
+  ]
+}

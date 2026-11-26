@@ -1,0 +1,30 @@
+{
+  "title": "HM-ONH Biomechanics UQ: Code and data for myopic optic nerve head modeling",
+  "upload_type": "software",
+  "description": "Research code and simulation datasets accompanying the manuscript \"Finite element modeling and global uncertainty quantification of myopic optic nerve head biomechanics for axial-length-stratified safe intraocular pressure estimation\". Includes parameterized ONH geometry and FEBio input generation, Latin hypercube designs and extracted simulation outputs, Gaussian process surrogate models, Sobol sensitivity analyses, a simulated 10,000-eye Gaussian Copula cohort, model-based equivalent IOP boundaries, and figure/table reproduction scripts. No patient-level clinical data are included. Model-derived equivalent IOP estimates require independent clinical validation.",
+  "creators": [
+    {
+      "name": "HM-ONH Biomechanics UQ Project"
+    }
+  ],
+  "license": "MIT",
+  "access_right": "open",
+  "version": "1.0.0",
+  "publication_date": "2026-11-26",
+  "keywords": [
+    "high myopia",
+    "optic nerve head biomechanics",
+    "finite element modeling",
+    "uncertainty quantification",
+    "Gaussian process",
+    "Sobol sensitivity analysis",
+    "intraocular pressure"
+  ],
+  "related_identifiers": [
+    {
+      "identifier": "https://github.com/seefreewind/hm-onh-biomechanics-uq",
+      "relation": "isSupplementTo",
+      "scheme": "url"
+    }
+  ]
+}

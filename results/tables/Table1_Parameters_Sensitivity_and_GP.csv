@@ -1,0 +1,11 @@
+Parameter,Description,Solver_Unit,LHS_Bounds,Emmetropia_Baseline,High_Myopia_Baseline,Cohort_TruncNorm_Mean_SD,Copula_r_with_AL,Sobol_10D_ST_Eeff,Intrinsic_9D_ST_Eeff_IOP21,Intrinsic_9D_ST_E1_IOP21
+AL,Axial length,mm,"[22.0, 32.0]",24.0,29.5,26.2 ± 2.5,+1.00,0.010 ± 0.001,0.034 ± 0.002,0.030 ± 0.002
+t_ppS,Peripapillary scleral thickness,mm,"[0.35, 1.05]",0.85,0.48,0.68 ± 0.16,-0.62,0.070 ± 0.005,0.171 ± 0.010,0.124 ± 0.008
+theta_canal,Neural canal obliqueness / tilt angle,deg (rad in solver),"[0.0, 35.0]",3.0,25.0,12.5 ± 8.5,+0.58,0.081 ± 0.005,0.223 ± 0.014,0.420 ± 0.026
+t_LC,Lamina cribrosa central thickness,mm,"[0.12, 0.38]",0.26,0.16,0.23 ± 0.055,-0.45,0.031 ± 0.002,0.062 ± 0.004,0.046 ± 0.003
+D_canal,Anterior scleral canal opening diameter,mm,"[1.4, 2.4]",1.65,2.05,1.78 ± 0.22,+0.42,0.018 ± 0.001,0.020 ± 0.001,0.017 ± 0.001
+c1_sclera,Scleral ground matrix Mooney-Rivlin stiffness c1,MPa,"[0.08, 0.45]",0.22,0.14,0.21 ± 0.075,-0.30,0.023 ± 0.002,0.066 ± 0.005,0.116 ± 0.008
+ksi_fiber,Peripapillary collagen fiber stiffness modulus ksi,MPa,"[0.8, 6.0]",2.8,2.0,2.75 ± 1.05,-0.20,0.126 ± 0.008,0.350 ± 0.019,0.211 ± 0.012
+b_fiber,Peripapillary circumferential fiber Von Mises concentration,dimensionless,"[0.4, 4.5]",2.5,1.1,2.2 ± 0.85,-0.48,0.021 ± 0.001,0.048 ± 0.003,0.028 ± 0.002
+E_LC,Lamina cribrosa effective Young's modulus,MPa,"[0.1, 0.6]",0.3,0.24,0.3 ± 0.1,-0.18,0.054 ± 0.004,0.105 ± 0.006,0.102 ± 0.006
+IOP,Intraocular pressure,mmHg (×0.000133322 MPa),"[10.0, 40.0]",15.0,15.0,16.0 ± 3.5,+0.12,0.630 ± 0.031,Fixed (21 mmHg),Fixed (21 mmHg)

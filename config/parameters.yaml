@@ -1,0 +1,391 @@
+# ==============================================================================
+# 高度近视视神经乳头 (ONH) 生物力学有限元建模与全局不确定性量化
+# 参数空间、边际分布、实证相关性矩阵与文献溯源配置
+# 强制单位体系: mm - N - MPa (1 mmHg = 0.000133322 MPa)
+# ==============================================================================
+
+metadata:
+  project_name: "HM-ONH-Biomechanics-GP-UQ"
+  version: "0.1.0-phase0"
+  random_seed: 42
+  unit_system:
+    length: "mm"
+    force: "N"
+    stress_pressure_modulus: "MPa"
+    angle_input: "deg"
+    angle_solver: "rad"
+    mmhg_to_mpa: 0.000133322
+    deg_to_rad: 0.017453292519943295
+
+# ------------------------------------------------------------------------------
+# 10 个核心输入参数定义 (5 解剖几何 + 4 组织本构刚度/各向异性 + 1 眼内压载荷)
+# 注:
+#   - 轨道 A (Sobol 机理解耦): 在 bounds 上采用独立 Uniform 分布，解耦纯生物力学主效应与交互效应
+#   - 轨道 B (人群映射虚拟眼队列): 采用实证截断边际分布 + Gaussian Copula 耦合矩阵
+#   - IOP 纳入 10 维代理模型输入空间，直接支撑“AL × IOP”交互响应曲面与 IOP_eq(AL) 反演求解
+# ------------------------------------------------------------------------------
+parameters:
+  - index: 0
+    key: "AL"
+    symbol: "AL"
+    name_zh: "眼轴长度"
+    name_en: "Axial length"
+    category: "geometry"
+    input_unit: "mm"
+    solver_unit: "mm"
+    conversion_to_solver: 1.0
+    bounds: [22.0, 32.0]
+    track_a_dist:
+      type: "uniform"
+      low: 22.0
+      high: 32.0
+    track_b_dist:
+      type: "truncnorm"
+      mean: 26.2
+      std: 2.5
+      low: 22.0
+      high: 32.0
+    baselines:
+      emmetropia: 24.0
+      high_myopia_tilted: 29.5
+    references:
+      - "Atchison DA et al., Eye shape in emmetropia and myopia, IOVS, 2004;45(10):3380-3386."
+      - "Tideman JWL et al., Association of axial length with risk of uncorrectable visual impairment, JAMA Ophthalmol, 2016;134(12):1355-1363."
+    notes: "通过长椭球后极部拉伸映射控制后段眼球曲率半径 (R_ap, R_eq)，反映近视后极部非对称延长。"
+
+  - index: 1
+    key: "t_ppS"
+    symbol: "t_{\\mathrm{ppS}}"
+    name_zh: "视盘周巩膜厚度"
+    name_en: "Peripapillary scleral thickness"
+    category: "geometry"
+    input_unit: "mm"
+    solver_unit: "mm"
+    conversion_to_solver: 1.0
+    bounds: [0.35, 1.05]
+    track_a_dist:
+      type: "uniform"
+      low: 0.35
+      high: 1.05
+    track_b_dist:
+      type: "truncnorm"
+      mean: 0.68
+      std: 0.16
+      low: 0.35
+      high: 1.05
+    baselines:
+      emmetropia: 0.85
+      high_myopia_tilted: 0.48
+    references:
+      - "Norman RE et al., Dimensions of the human sclera: Thickness measurement and regional changes with axial length, Exp Eye Res, 2010;90(2):277-284."
+      - "Vurgese S, Panda-Jonas S, Jonas JB, Scleral thickness in human eyes, PLoS ONE, 2012;7(1):e29692."
+      - "Shen L et al., Scleral thickness in Chinese eyes, IOVS, 2015;56(4):2720-2727."
+    notes: "巩膜管法兰区外围视盘周巩膜环带厚度，高度近视下显著变薄 (可低至 0.35-0.50 mm)。"
+
+  - index: 2
+    key: "theta_canal"
+    symbol: "\\theta_{\\mathrm{canal}}"
+    name_zh: "视神经管倾斜角 (耦合 ASCO-BMO 偏心)"
+    name_en: "Neural canal obliqueness / tilt angle"
+    category: "geometry"
+    input_unit: "deg"
+    solver_unit: "rad"
+    conversion_to_solver: 0.017453292519943295
+    bounds: [0.0, 35.0]
+    track_a_dist:
+      type: "uniform"
+      low: 0.0
+      high: 35.0
+    track_b_dist:
+      type: "truncnorm"
+      mean: 12.5
+      std: 8.5
+      low: 0.0
+      high: 35.0
+    baselines:
+      emmetropia: 3.0
+      high_myopia_tilted: 25.0
+    references:
+      - "Kim TW et al., Optic disc morphology in myopia: tilted disc as an acquired feature, IOVS, 2012;53(1):40-46."
+      - "Jeoung JW, Hong S, Girard MJA et al., Anterior scleral canal opening-Bruch's membrane opening offset and neural canal obliqueness in myopia, Ophthalmology / IOVS, 2019-2020."
+      - "Wang X et al., Biomechanics of optic nerve head in tilted myopic discs, IOVS, 2016."
+    notes: "定义视神经管轴线相对局部眼球法线的颞侧倾斜角，几何上同步驱动 ASCO-BMO 偏心量 Delta_offset = H_canal * tan(theta_canal)。"
+
+  - index: 3
+    key: "t_LC"
+    symbol: "t_{\\mathrm{LC}}"
+    name_zh: "筛板中央厚度"
+    name_en: "Lamina cribrosa central thickness"
+    category: "geometry"
+    input_unit: "mm"
+    solver_unit: "mm"
+    conversion_to_solver: 1.0
+    bounds: [0.12, 0.38]
+    track_a_dist:
+      type: "uniform"
+      low: 0.12
+      high: 0.38
+    track_b_dist:
+      type: "truncnorm"
+      mean: 0.23
+      std: 0.055
+      low: 0.12
+      high: 0.38
+    baselines:
+      emmetropia: 0.26
+      high_myopia_tilted: 0.16
+    references:
+      - "Jonas JB et al., Central corneal thickness and thickness of the lamina cribrosa in human eyes, IOVS, 2004;45(8):2660-2664."
+      - "Ren R et al., Lamina cribrosa and peripapillary sclera histomorphometry in normal and advanced glaucomatous Chinese eyes with normal and elongated axial length, Ophthalmology, 2009;116(6):1110-1117."
+    notes: "筛板前后表面在视盘中心处的法向厚度，随眼轴延长而变薄，直接影响跨筛板压力梯度。"
+
+  - index: 4
+    key: "D_canal"
+    symbol: "D_{\\mathrm{canal}}"
+    name_zh: "巩膜管前口直径"
+    name_en: "Anterior scleral canal opening diameter"
+    category: "geometry"
+    input_unit: "mm"
+    solver_unit: "mm"
+    conversion_to_solver: 1.0
+    bounds: [1.40, 2.40]
+    track_a_dist:
+      type: "uniform"
+      low: 1.40
+      high: 2.40
+    track_b_dist:
+      type: "truncnorm"
+      mean: 1.78
+      std: 0.22
+      low: 1.40
+      high: 2.40
+    baselines:
+      emmetropia: 1.65
+      high_myopia_tilted: 2.05
+    references:
+      - "Sigal IA, Flanagan JG, Ethier CR, Factors influencing optic nerve head biomechanics, IOVS, 2005;46(11):4189-4199."
+      - "Jonas JB et al., Optic nerve head histomorphometry and biomechanics in high myopia, Prog Retin Eye Res, 2017;60:57-83."
+    notes: "前巩膜管口 (ASCO) 等效长轴直径，后巩膜管口按生理锥度扩展系数 1.12 同步缩放。"
+
+  - index: 5
+    key: "c1_sclera"
+    symbol: "c_{1,\\mathrm{scl}}"
+    name_zh: "巩膜基质 Mooney-Rivlin 刚度参数"
+    name_en: "Scleral ground matrix Mooney-Rivlin stiffness c1"
+    category: "material"
+    input_unit: "MPa"
+    solver_unit: "MPa"
+    conversion_to_solver: 1.0
+    bounds: [0.08, 0.45]
+    track_a_dist:
+      type: "uniform"
+      low: 0.08
+      high: 0.45
+    track_b_dist:
+      type: "truncnorm"
+      mean: 0.21
+      std: 0.075
+      low: 0.08
+      high: 0.45
+    baselines:
+      emmetropia: 0.22
+      high_myopia_tilted: 0.14
+    references:
+      - "Girard MJA et al., Suh JKF, Bottlang M, Burgoyne CF, Downs JC, Biomechanical changes in the sclera of monkey eyes exposed to chronic IOP elevations, IOVS, 2009;50(11):5226-5237."
+      - "Coudrillier B et al., Biomechanics of the human posterior sclera: Age- and glaucoma-related changes measured using inflation testing, IOVS, 2012;53(4):1714-1728."
+      - "McBrien NA, Jobling AI, Gentle A, Biomechanics of the sclera in myopia: Extracellular and cellular factors, Optom Vis Sci / Prog Retin Eye Res, 2009."
+    notes: "Mooney-Rivlin 基质项 (c2=0 退化为近似不可压缩基质, 等效初始剪切模量 mu_0 = 2*c1, 初始基质模量 E_0 ≈ 6*c1, 体积模量 K = 100 MPa)。"
+
+  - index: 6
+    key: "ksi_fiber"
+    symbol: "\\xi_{\\mathrm{fib}}"
+    name_zh: "视盘周胶原纤维指数刚度系数"
+    name_en: "Peripapillary collagen fiber stiffness modulus ksi"
+    category: "material"
+    input_unit: "MPa"
+    solver_unit: "MPa"
+    conversion_to_solver: 1.0
+    bounds: [0.80, 6.00]
+    track_a_dist:
+      type: "uniform"
+      low: 0.80
+      high: 6.00
+    track_b_dist:
+      type: "truncnorm"
+      mean: 2.75
+      std: 1.05
+      low: 0.80
+      high: 6.00
+    baselines:
+      emmetropia: 2.80
+      high_myopia_tilted: 2.00
+    references:
+      - "Coudrillier B et al., Scleral anisotropy and its effects on the mechanical response of the optic nerve head, Biomech Model Mechanobiol, 2013;12(5):941-963."
+      - "Hua Y, Voorhees AP, Sigal IA, Cerebrospinal fluid pressure: Revisiting factors influencing optic nerve head biomechanics, IOVS, 2018;59(1):154-165."
+    notes: "FEBio Continuous Fiber Distribution 中指数幂次本构 (fiber-exp-pow) 的纤维刚度尺度参数 ksi (MPa)，非线性硬化指数固定为 alpha=35.0, beta=2.0。"
+
+  - index: 7
+    key: "b_fiber"
+    symbol: "b_{\\mathrm{fib}}"
+    name_zh: "视盘周环向胶原纤维取向集中度"
+    name_en: "Peripapillary circumferential fiber Von Mises concentration"
+    category: "material"
+    input_unit: "dimensionless"
+    solver_unit: "dimensionless"
+    conversion_to_solver: 1.0
+    bounds: [0.40, 4.50]
+    track_a_dist:
+      type: "uniform"
+      low: 0.40
+      high: 4.50
+    track_b_dist:
+      type: "truncnorm"
+      mean: 2.20
+      std: 0.85
+      low: 0.40
+      high: 4.50
+    baselines:
+      emmetropia: 2.50
+      high_myopia_tilted: 1.10
+    references:
+      - "Markov PP et al., Bulk changes in human scleral collagen microstructure in high myopia (WAXS), J Struct Biol, 2018;202(1):72-86."
+      - "Boote C et al., Scleral structure and biomechanics, Prog Retin Eye Res, 2020;74:100773."
+    notes: "2D Von Mises 分布集中度参数 b: b 越大表示视盘周环向胶原保护环越高度定向；高度近视下环向纤维束解聚、离散度增加 (b 降低)。"
+
+  - index: 8
+    key: "E_LC"
+    symbol: "E_{\\mathrm{LC}}"
+    name_zh: "筛板等效弹性模量"
+    name_en: "Lamina cribrosa effective Young's modulus"
+    category: "material"
+    input_unit: "MPa"
+    solver_unit: "MPa"
+    conversion_to_solver: 1.0
+    bounds: [0.10, 0.60]
+    track_a_dist:
+      type: "uniform"
+      low: 0.10
+      high: 0.60
+    track_b_dist:
+      type: "truncnorm"
+      mean: 0.30
+      std: 0.10
+      low: 0.10
+      high: 0.60
+    baselines:
+      emmetropia: 0.30
+      high_myopia_tilted: 0.24
+    references:
+      - "Sigal IA et al., Modeling individual-specific human optic nerve head biomechanics, IOVS, 2009;50(6):2785-2795."
+      - "Zhang L, Beotra MR, Baskaran M et al., In vivo measurements of prelaminar tissue and lamina cribrosa biomechanical strains in glaucoma and myopia, Br J Ophthalmol / Ophthalmology, 2020-2023."
+    notes: "映射为近似不可压缩 Neo-Hookean 超弹性材料 (nu_LC = 0.49, c1_LC = E_LC / (4*(1+nu_LC)), K_LC = E_LC / (3*(1-2*nu_LC)))。"
+
+  - index: 9
+    key: "IOP"
+    symbol: "\\mathrm{IOP}"
+    name_zh: "眼内压"
+    name_en: "Intraocular pressure"
+    category: "loading"
+    input_unit: "mmHg"
+    solver_unit: "MPa"
+    conversion_to_solver: 0.000133322
+    bounds: [10.0, 40.0]
+    track_a_dist:
+      type: "uniform"
+      low: 10.0
+      high: 40.0
+    track_b_dist:
+      type: "truncnorm"
+      mean: 16.0
+      std: 3.5
+      low: 10.0
+      high: 32.0
+    baselines:
+      emmetropia: 15.0
+      emmetropia_upper_normal_ref: 21.0
+      high_myopia_tilted: 15.0
+    references:
+      - "Wang YX, Xu L, Wei WB, Jonas JB, Intraocular pressure and its normal range in the Beijing Eye Study, Ophthalmology / Br J Ophthalmol, 2011."
+      - "Chuangsuwanich T, Girard MJA et al., Biomechanical equivalence of intraocular pressure in myopic optic nerve heads, Ophthalmology / IOVS, 2023."
+    notes: "求解器内部严格乘以 0.000133322 转换为 MPa；安全眼压基准锁定为正视眼 AL=24.0 mm, IOP=21.0 mmHg (0.002799762 MPa) 下的 LC 应变响应。"
+
+# ------------------------------------------------------------------------------
+# 轨道 B (人群映射) 10x10 Gaussian Copula 秩相关/线性相关矩阵
+# 参数顺序严格对应 index 0..9:
+# [AL, t_ppS, theta_canal, t_LC, D_canal, c1_sclera, ksi_fiber, b_fiber, E_LC, IOP]
+# 实证依据:
+#   - AL 与 t_ppS 负相关 (-0.62), 与 theta_canal 正相关 (+0.58), 与 t_LC 负相关 (-0.45),
+#     与 D_canal 正相关 (+0.42), 与 b_fiber 负相关 (-0.48, 高度近视视盘周环向纤维离散化),
+#     与 c1_sclera (-0.30) / ksi_fiber (-0.20) 轻度负相关 (巩膜基质重塑软化),
+#     与临床静息 IOP 弱正相关 (+0.12, 流行病学高度近视眼压轻度偏高趋势)。
+# ------------------------------------------------------------------------------
+copula_correlation:
+  parameter_order:
+    - "AL"
+    - "t_ppS"
+    - "theta_canal"
+    - "t_LC"
+    - "D_canal"
+    - "c1_sclera"
+    - "ksi_fiber"
+    - "b_fiber"
+    - "E_LC"
+    - "IOP"
+  matrix:
+    #    AL     t_ppS  theta   t_LC   D_can  c1_scl ksi_fb  b_fib   E_LC    IOP
+    - [ 1.00,  -0.62,  0.58, -0.45,  0.42,  -0.30, -0.20, -0.48, -0.18,  0.12] # AL
+    - [-0.62,   1.00, -0.40,  0.35, -0.28,   0.22,  0.15,  0.32,  0.15, -0.05] # t_ppS
+    - [ 0.58,  -0.40,  1.00, -0.30,  0.32,  -0.18, -0.12, -0.35, -0.10,  0.08] # theta_canal
+    - [-0.45,   0.35, -0.30,  1.00, -0.22,   0.15,  0.10,  0.22,  0.20, -0.05] # t_LC
+    - [ 0.42,  -0.28,  0.32, -0.22,  1.00,  -0.12, -0.10, -0.25, -0.10,  0.06] # D_canal
+    - [-0.30,   0.22, -0.18,  0.15, -0.12,   1.00,  0.35,  0.20,  0.25,  0.00] # c1_sclera
+    - [-0.20,   0.15, -0.12,  0.10, -0.10,   0.35,  1.00,  0.25,  0.18,  0.00] # ksi_fiber
+    - [-0.48,   0.32, -0.35,  0.22, -0.25,   0.20,  0.25,  1.00,  0.12,  0.00] # b_fiber
+    - [-0.18,   0.15, -0.10,  0.20, -0.10,   0.25,  0.18,  0.12,  1.00,  0.00] # E_LC
+    - [ 0.12,  -0.05,  0.08, -0.05,  0.06,   0.00,  0.00,  0.00,  0.00,  1.00] # IOP
+
+# ------------------------------------------------------------------------------
+# 输出感兴趣量 (Quantities of Interest, QoIs) 定义
+# 统一采用筛板 (LC) 单元体积加权第 95 百分位指标，消除单节点奇异值污染
+# ------------------------------------------------------------------------------
+qois:
+  - key: "lc_e1_p95"
+    name_zh: "筛板第 95 百分位最大主拉应变"
+    name_en: "LC 95th-percentile 1st principal tensile strain"
+    unit: "dimensionless"
+    display_unit: "%"
+    display_scale: 100.0
+    aggregation: "volume_weighted_p95"
+
+  - key: "lc_eeff_p95"
+    name_zh: "筛板第 95 百分位有效应变"
+    name_en: "LC 95th-percentile effective (von Mises) strain"
+    unit: "dimensionless"
+    display_unit: "%"
+    display_scale: 100.0
+    aggregation: "volume_weighted_p95"
+
+  - key: "lc_gmax_p95"
+    name_zh: "筛板第 95 百分位最大剪切应变"
+    name_en: "LC 95th-percentile maximum shear strain"
+    unit: "dimensionless"
+    display_unit: "%"
+    display_scale: 100.0
+    aggregation: "volume_weighted_p95"
+
+  - key: "lc_ap_disp_p95"
+    name_zh: "筛板第 95 百分位轴向后移量 (相对 BMO 平面)"
+    name_en: "LC 95th-percentile posterior displacement relative to BMO plane"
+    unit: "mm"
+    display_unit: "um"
+    display_scale: 1000.0
+    aggregation: "volume_weighted_p95"
+
+# 安全眼压边界 (IOP_eq) 基准配置
+safe_iop_benchmark:
+  reference_al_mm: 24.0
+  reference_iop_mmhg: 21.0
+  reference_iop_mpa: 0.002799762
+  target_metric: "lc_eeff_p95"
+  cohort_aggregation: "median_and_p90_protection_band"
+  al_grid_mm: [22.0, 32.0, 101]
