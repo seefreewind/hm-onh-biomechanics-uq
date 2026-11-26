@@ -105,3 +105,7 @@ The archive omits regenerated figures and internal manuscript-planning documents
 ## License
 
 This project is released under the MIT License (see `LICENSE`).
+
+## Release verification
+
+The quickstart test command passed **10 tests** on Python 3.14.8. Scikit-learn reported 15 optimizer-bound convergence warnings in the analytical GP interface test. Live FEBio reruns and the internal full-workspace deliverable check were excluded as documented above. The archived numerical outputs were preserved from the supplied repository ZIP.
